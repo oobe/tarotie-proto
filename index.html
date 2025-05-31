@@ -180,9 +180,21 @@ function handleOrientation(event) {
   const beta = event.beta;
   if (beta === null) return;
 
+  // 當螢幕朝下時，強制蓋牌
   if (beta > 150) {
+    if (flipped) {
+      cardElement.classList.remove('flipped');
+      flipped = false;
+    }
     lastFlipTime = Date.now();
   }
+
+  // 從朝下翻正面後抽新牌翻牌
+  if (!flipped && lastFlipTime && beta < 60 && (Date.now() - lastFlipTime < 2000)) {
+    loadCardAndFlip();
+    lastFlipTime = null;
+  }
+}
 
   if (lastFlipTime && beta < 60 && (Date.now() - lastFlipTime < 2000)) {
     if (!flipped) {
