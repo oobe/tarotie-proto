@@ -75,90 +75,24 @@
   </div>
 
   <script>
-  window.addEventListener('DOMContentLoaded', () => {
-    const cards = [
-      { name: "The Fool", image: "images/00-TheFool.png" },
-      { name: "The Magician", image: "images/01-TheMagician.png" },
-      { name: "The High Priestess", image: "images/02-TheHighPriestess.png" },
-      { name: "The Empress", image: "images/03-TheEmpress.png" },
-      { name: "The Emperor", image: "images/04-TheEmperor.png" },
-      { name: "The Hierophant", image: "images/05-TheHierophant.png" },
-      { name: "The Lovers", image: "images/06-TheLovers.png" },
-      { name: "The Chariot", image: "images/07-TheChariot.png" },
-      { name: "Strength", image: "images/08-Strength.png" },
-      { name: "The Hermit", image: "images/09-TheHermit.png" },
-      { name: "Wheel of Fortune", image: "images/10-WheelOfFortune.png" },
-      { name: "Justice", image: "images/11-Justice.png" },
-      { name: "The Hanged Man", image: "images/12-TheHangedMan.png" },
-      { name: "Death", image: "images/13-Death.png" },
-      { name: "Temperance", image: "images/14-Temperance.png" },
-      { name: "The Devil", image: "images/15-TheDevil.png" },
-      { name: "The Tower", image: "images/16-TheTower.png" },
-      { name: "The Star", image: "images/17-TheStar.png" },
-      { name: "The Moon", image: "images/18-TheMoon.png" },
-      { name: "The Sun", image: "images/19-TheSun.png" },
-      { name: "Judgement", image: "images/20-Judgement.png" },
-      { name: "The World", image: "images/21-TheWorld.png" },
-      ...["Cups", "Pentacles", "Swords", "Wands"].flatMap(suit => {
-        return Array.from({ length: 14 }, (_, i) => {
-          const number = (i + 1).toString().padStart(2, '0');
-          return {
-            name: `${suit} ${i + 1}`,
-            image: `images/${suit}${number}.png`
-          };
-        });
-      })
-    ];
+function handleOrientation(event) {
+  const beta = event.beta;
+  if (beta === null) return;
 
-    const cardImage = document.getElementById('card-image');
-    const cardElement = document.getElementById('card');
-    let flipped = false;
-    let lastFlipTime = null;
-
-    function loadCardAndFlip() {
-      const index = Math.floor(Math.random() * cards.length);
-      const selected = cards[index];
-      const newImage = new Image();
-      newImage.onload = () => {
-        cardImage.src = selected.image;
-        cardImage.alt = `塔羅牌 ${selected.name}`;
-        cardElement.classList.add('flipped');
-        flipped = true;
-      };
-      newImage.src = selected.image;
+  if (beta > 150) {
+    if (flipped) {
+      cardElement.classList.remove('flipped');
+      flipped = false;
     }
+    lastFlipTime = Date.now();
+  }
 
-    function toggleCard() {
-      if (!flipped) {
-        loadCardAndFlip();
-      } else {
-        cardElement.classList.remove('flipped');
-        flipped = false;
-      }
-    }
+  if (!flipped && lastFlipTime && beta < 60 && (Date.now() - lastFlipTime < 2000)) {
+    loadCardAndFlip();
+    lastFlipTime = null;
+  }
+}
 
-    cardElement.addEventListener('click', toggleCard);
-
-    window.addEventListener('deviceorientation', (event) => {
-      const beta = event.beta;
-      if (beta === null) return;
-
-      if (beta > 150) {
-        lastFlipTime = Date.now();
-      }
-
-      if (lastFlipTime && beta < 60 && (Date.now() - lastFlipTime < 2000)) {
-        if (!flipped) {
-          loadCardAndFlip();
-        }
-        lastFlipTime = null;
-      }
-    });
-  });
-</script>
-<button id="motion-permission-button" style="position: absolute; top: 20px; left: 20px; z-index: 999; padding: 10px 16px; font-size: 16px;">啟用手機翻牌</button>
-
-<script>
 document.getElementById('motion-permission-button').addEventListener('click', () => {
   if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
     DeviceOrientationEvent.requestPermission().then(permissionState => {
@@ -175,34 +109,87 @@ document.getElementById('motion-permission-button').addEventListener('click', ()
     window.addEventListener('deviceorientation', handleOrientation);
   }
 });
+</script>
+<button id="motion-permission-button" style="position: fixed; top: 20px; left: 20px; z-index: 1000; padding: 10px; font-size: 16px;">啟用手機翻牌</button>
 
-function handleOrientation(event) {
-  const beta = event.beta;
-  if (beta === null) return;
+<script>
+  const cardImage = document.getElementById('card-image');
+  const cardElement = document.getElementById('card');
+  let flipped = false;
+  let lastFlipTime = null;
 
-  // 當螢幕朝下時，強制蓋牌
-  if (beta > 150) {
-    if (flipped) {
+  const cards = [
+    { name: "The Fool", image: "images/00-TheFool.png" },
+    { name: "The Magician", image: "images/01-TheMagician.png" },
+    { name: "The High Priestess", image: "images/02-TheHighPriestess.png" },
+    { name: "The Empress", image: "images/03-TheEmpress.png" },
+    { name: "The Emperor", image: "images/04-TheEmperor.png" },
+    { name: "The Hierophant", image: "images/05-TheHierophant.png" },
+    { name: "The Lovers", image: "images/06-TheLovers.png" },
+    { name: "The Chariot", image: "images/07-TheChariot.png" },
+    { name: "Strength", image: "images/08-Strength.png" },
+    { name: "The Hermit", image: "images/09-TheHermit.png" },
+    { name: "Wheel of Fortune", image: "images/10-WheelOfFortune.png" },
+    { name: "Justice", image: "images/11-Justice.png" },
+    { name: "The Hanged Man", image: "images/12-TheHangedMan.png" },
+    { name: "Death", image: "images/13-Death.png" },
+    { name: "Temperance", image: "images/14-Temperance.png" },
+    { name: "The Devil", image: "images/15-TheDevil.png" },
+    { name: "The Tower", image: "images/16-TheTower.png" },
+    { name: "The Star", image: "images/17-TheStar.png" },
+    { name: "The Moon", image: "images/18-TheMoon.png" },
+    { name: "The Sun", image: "images/19-TheSun.png" },
+    { name: "Judgement", image: "images/20-Judgement.png" },
+    { name: "The World", image: "images/21-TheWorld.png" },
+    ...["Cups", "Pentacles", "Swords", "Wands"].flatMap(suit => {
+      return Array.from({ length: 14 }, (_, i) => {
+        const number = (i + 1).toString().padStart(2, '0');
+        return {
+          name: `${suit} ${i + 1}`,
+          image: `images/${suit}${number}.png`
+        };
+      });
+    })
+  ];
+
+  function loadCardAndFlip() {
+    const index = Math.floor(Math.random() * cards.length);
+    const selected = cards[index];
+    const newImage = new Image();
+    newImage.onload = () => {
+      cardImage.src = selected.image;
+      cardImage.alt = `塔羅牌 ${selected.name}`;
+      cardElement.classList.add('flipped');
+      flipped = true;
+    };
+    newImage.src = selected.image;
+  }
+
+  function toggleCard() {
+    if (!flipped) {
+      loadCardAndFlip();
+    } else {
       cardElement.classList.remove('flipped');
       flipped = false;
     }
-    lastFlipTime = Date.now();
   }
 
-  // 從朝下翻正面後抽新牌翻牌
-  if (!flipped && lastFlipTime && beta < 60 && (Date.now() - lastFlipTime < 2000)) {
-    loadCardAndFlip();
-    lastFlipTime = null;
-  }
-}
+  window.addEventListener('DOMContentLoaded', () => {
+    cardElement.addEventListener('click', toggleCard);
 
-  if (lastFlipTime && beta < 60 && (Date.now() - lastFlipTime < 2000)) {
-    if (!flipped) {
-      loadCardAndFlip();
+    // 自動檢查是否已有權限並啟用
+    if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+      DeviceOrientationEvent.requestPermission().then(state => {
+        if (state === 'granted') {
+          document.getElementById('motion-permission-button').style.display = 'none';
+          window.addEventListener('deviceorientation', handleOrientation);
+        }
+      }).catch(console.error);
+    } else {
+      document.getElementById('motion-permission-button').style.display = 'none';
+      window.addEventListener('deviceorientation', handleOrientation);
     }
-    lastFlipTime = null;
-  }
-}
+  });
 </script>
 </body>
 </html>
