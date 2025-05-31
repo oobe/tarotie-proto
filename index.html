@@ -156,5 +156,41 @@
     });
   });
 </script>
+<button id="motion-permission-button" style="position: absolute; top: 20px; left: 20px; z-index: 999; padding: 10px 16px; font-size: 16px;">啟用手機翻牌</button>
+
+<script>
+document.getElementById('motion-permission-button').addEventListener('click', () => {
+  if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+    DeviceOrientationEvent.requestPermission().then(permissionState => {
+      if (permissionState === 'granted') {
+        document.getElementById('motion-permission-button').style.display = 'none';
+        window.addEventListener('deviceorientation', handleOrientation);
+      } else {
+        alert('未授權無法使用手機翻牌功能');
+      }
+    }).catch(console.error);
+  } else {
+    // Android 不需要權限
+    document.getElementById('motion-permission-button').style.display = 'none';
+    window.addEventListener('deviceorientation', handleOrientation);
+  }
+});
+
+function handleOrientation(event) {
+  const beta = event.beta;
+  if (beta === null) return;
+
+  if (beta > 150) {
+    lastFlipTime = Date.now();
+  }
+
+  if (lastFlipTime && beta < 60 && (Date.now() - lastFlipTime < 2000)) {
+    if (!flipped) {
+      loadCardAndFlip();
+    }
+    lastFlipTime = null;
+  }
+}
+</script>
 </body>
 </html>
