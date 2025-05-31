@@ -75,90 +75,86 @@
   </div>
 
   <script>
-    window.addEventListener('DOMContentLoaded', () => {
-      const cards = [
-  // Major Arcana
-  { name: "The Fool", image: "images/00-TheFool.png" },
-  { name: "The Magician", image: "images/01-TheMagician.png" },
-  { name: "The High Priestess", image: "images/02-TheHighPriestess.png" },
-  { name: "The Empress", image: "images/03-TheEmpress.png" },
-  { name: "The Emperor", image: "images/04-TheEmperor.png" },
-  { name: "The Hierophant", image: "images/05-TheHierophant.png" },
-  { name: "The Lovers", image: "images/06-TheLovers.png" },
-  { name: "The Chariot", image: "images/07-TheChariot.png" },
-  { name: "Strength", image: "images/08-Strength.png" },
-  { name: "The Hermit", image: "images/09-TheHermit.png" },
-  { name: "Wheel of Fortune", image: "images/10-WheelOfFortune.png" },
-  { name: "Justice", image: "images/11-Justice.png" },
-  { name: "The Hanged Man", image: "images/12-TheHangedMan.png" },
-  { name: "Death", image: "images/13-Death.png" },
-  { name: "Temperance", image: "images/14-Temperance.png" },
-  { name: "The Devil", image: "images/15-TheDevil.png" },
-  { name: "The Tower", image: "images/16-TheTower.png" },
-  { name: "The Star", image: "images/17-TheStar.png" },
-  { name: "The Moon", image: "images/18-TheMoon.png" },
-  { name: "The Sun", image: "images/19-TheSun.png" },
-  { name: "Judgement", image: "images/20-Judgement.png" },
-  { name: "The World", image: "images/21-TheWorld.png" },
+  window.addEventListener('DOMContentLoaded', () => {
+    const cards = [
+      { name: "The Fool", image: "images/00-TheFool.png" },
+      { name: "The Magician", image: "images/01-TheMagician.png" },
+      { name: "The High Priestess", image: "images/02-TheHighPriestess.png" },
+      { name: "The Empress", image: "images/03-TheEmpress.png" },
+      { name: "The Emperor", image: "images/04-TheEmperor.png" },
+      { name: "The Hierophant", image: "images/05-TheHierophant.png" },
+      { name: "The Lovers", image: "images/06-TheLovers.png" },
+      { name: "The Chariot", image: "images/07-TheChariot.png" },
+      { name: "Strength", image: "images/08-Strength.png" },
+      { name: "The Hermit", image: "images/09-TheHermit.png" },
+      { name: "Wheel of Fortune", image: "images/10-WheelOfFortune.png" },
+      { name: "Justice", image: "images/11-Justice.png" },
+      { name: "The Hanged Man", image: "images/12-TheHangedMan.png" },
+      { name: "Death", image: "images/13-Death.png" },
+      { name: "Temperance", image: "images/14-Temperance.png" },
+      { name: "The Devil", image: "images/15-TheDevil.png" },
+      { name: "The Tower", image: "images/16-TheTower.png" },
+      { name: "The Star", image: "images/17-TheStar.png" },
+      { name: "The Moon", image: "images/18-TheMoon.png" },
+      { name: "The Sun", image: "images/19-TheSun.png" },
+      { name: "Judgement", image: "images/20-Judgement.png" },
+      { name: "The World", image: "images/21-TheWorld.png" },
+      ...["Cups", "Pentacles", "Swords", "Wands"].flatMap(suit => {
+        return Array.from({ length: 14 }, (_, i) => {
+          const number = (i + 1).toString().padStart(2, '0');
+          return {
+            name: `${suit} ${i + 1}`,
+            image: `images/${suit}${number}.png`
+          };
+        });
+      })
+    ];
 
-  // Minor Arcana
-  ...["Cups", "Pentacles", "Swords", "Wands"].flatMap(suit => {
-    return Array.from({ length: 14 }, (_, i) => {
-      const number = (i + 1).toString().padStart(2, '0');
-      return {
-        name: `${suit} ${i + 1}`,
-        image: `images/${suit}${number}.png`
-      };
-    });
-  })
-];
+    const cardImage = document.getElementById('card-image');
+    const cardElement = document.getElementById('card');
+    let flipped = false;
+    let lastFlipTime = null;
 
-      const cardImage = document.getElementById('card-image');
-      const cardElement = document.getElementById('card');
-      let flipped = false;
-      let lastFlipTime = null;
-
-      function drawNewCard() {
-        const index = Math.floor(Math.random() * cards.length);
-        const selected = cards[index];
+    function loadCardAndFlip() {
+      const index = Math.floor(Math.random() * cards.length);
+      const selected = cards[index];
+      const newImage = new Image();
+      newImage.onload = () => {
         cardImage.src = selected.image;
         cardImage.alt = `塔羅牌 ${selected.name}`;
-      }
-
-      function toggleCard() {
-        if (!flipped) {
-          drawNewCard();
-          cardElement.classList.add('flipped');
-        } else {
-          cardElement.classList.remove('flipped');
-        }
-        flipped = !flipped;
-      }
-
-      cardElement.addEventListener('click', toggleCard);
-
-      window.addEventListener('deviceorientation', (event) => {
-  const beta = event.beta;
-  if (beta === null) return;
-
-  // 偵測手機蓋下動作（螢幕朝下）
-  if (beta > 150) {
-    lastFlipTime = Date.now();
-  }
-
-  // 偵測手機從蓋下轉回正面，並且在 2 秒內觸發翻牌
-  if (lastFlipTime && beta < 60 && (Date.now() - lastFlipTime < 2000)) {
-    if (!flipped) {
-      drawNewCard();
-      cardElement.classList.add('flipped');
-      flipped = true;
+        cardElement.classList.add('flipped');
+        flipped = true;
+      };
+      newImage.src = selected.image;
     }
-    lastFlipTime = null; // 避免重複觸發
-  }
-});
 
-      drawNewCard();
+    function toggleCard() {
+      if (!flipped) {
+        loadCardAndFlip();
+      } else {
+        cardElement.classList.remove('flipped');
+        flipped = false;
+      }
+    }
+
+    cardElement.addEventListener('click', toggleCard);
+
+    window.addEventListener('deviceorientation', (event) => {
+      const beta = event.beta;
+      if (beta === null) return;
+
+      if (beta > 150) {
+        lastFlipTime = Date.now();
+      }
+
+      if (lastFlipTime && beta < 60 && (Date.now() - lastFlipTime < 2000)) {
+        if (!flipped) {
+          loadCardAndFlip();
+        }
+        lastFlipTime = null;
+      }
     });
-  </script>
+  });
+</script>
 </body>
 </html>
