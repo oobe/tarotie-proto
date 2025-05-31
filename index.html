@@ -80,6 +80,14 @@
   </div>
 
   <script>
+// 檢查是否在 iOS PWA 模式下
+if (window.navigator.standalone) {
+  document.addEventListener('DOMContentLoaded', () => {
+    const button = document.getElementById('motion-permission-button');
+    if (button) button.style.display = 'none';
+  });
+}
+
 function handleOrientation(event) {
   const beta = event.beta;
   if (beta === null) return;
