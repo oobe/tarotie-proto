@@ -107,9 +107,13 @@ document.getElementById('motion-permission-button').addEventListener('click', ()
       } else {
         alert('未授權無法使用手機翻牌功能');
       }
-    }).catch(console.error);
+    }).catch(err => {
+      console.error(err);
+      // 降級支援: 即使錯誤也啟用 listener
+      window.addEventListener('deviceorientation', handleOrientation);
+    });
   } else {
-    // Android 不需要權限
+    // 無需授權或不支援 requestPermission，直接啟用
     document.getElementById('motion-permission-button').style.display = 'none';
     window.addEventListener('deviceorientation', handleOrientation);
   }
