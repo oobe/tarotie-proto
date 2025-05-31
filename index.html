@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>今日塔羅抽牌</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background: #faf3e0;
+      overflow: hidden;
+    }
+    .card-container {
+      width: 200px;
+      height: 350px;
+      perspective: 1000px;
+    }
+    .card {
+      width: 100%;
+      height: 100%;
+      position: relative;
+      transform-style: preserve-3d;
+      transition: transform 1s;
+    }
+    .card.flipped {
+      transform: rotateY(180deg);
+    }
+    .card-face {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      backface-visibility: hidden;
+      border-radius: 8px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    }
+    .card-back {
+      background: url('images/back.jpg') no-repeat center/cover;
+    }
+    .card-front {
+      transform: rotateY(180deg);
+      background: #fff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    .card-front img {
+      width: 100%;
+      height: auto;
+      border-radius: 8px 8px 0 0;
+    }
+    .meaning {
+      padding: 8px;
+      text-align: center;
+      font-size: 16px;
+    }
+  </style>
+</head>
+<body>
+  <div class="card-container">
+    <div class="card" id="card" style="cursor: pointer;">
+      <div class="card-face card-back"></div>
+      <div class="card-face card-front">
+        <img id="card-image" src="" alt="塔羅牌">
+        
+      </div>
+    </div>
+  </div>
+  <script>
+    window.addEventListener('DOMContentLoaded', () => {
+      const cards = [
+        { name: "The Fool", image: "images/00-TheFool.png", meaning: "新的開始，自由與冒險。" },
+        { name: "The Magician", image: "images/01-TheMagician.png", meaning: "掌控與創造的力量。" },
+        { name: "The High Priestess", image: "images/02-TheHighPriestess.png", meaning: "直覺與內在智慧。" },
+        { name: "The Empress", image: "images/03-TheEmpress.png", meaning: "豐盛、孕育、母性。" },
+        { name: "The Emperor", image: "images/04-TheEmperor.png", meaning: "結構、權威、穩定。" },
+        { name: "The Hierophant", image: "images/05-TheHierophant.png", meaning: "傳統、信仰、導師。" },
+        { name: "The Lovers", image: "images/06-TheLovers.png", meaning: "愛情、選擇、關係。" },
+        { name: "The Chariot", image: "images/07-TheChariot.png", meaning: "勝利、意志力、控制。" },
+        { name: "Strength", image: "images/08-Strength.png", meaning: "勇氣、耐力、內在力量。" },
+        { name: "The Hermit", image: "images/09-TheHermit.png", meaning: "內省、尋找真理、孤獨。" },
+        { name: "Wheel of Fortune", image: "images/10-WheelOfFortune.png", meaning: "命運轉折、變化、週期。" },
+        { name: "Justice", image: "images/11-Justice.png", meaning: "公平、平衡、因果。" },
+        { name: "The Hanged Man", image: "images/12-TheHangedMan.png", meaning: "犧牲、等待、新視角。" },
+        { name: "Death", image: "images/13-Death.png", meaning: "轉變、結束與重生。" },
+        { name: "Temperance", image: "images/14-Temperance.png", meaning: "節制、調和、平衡。" },
+        { name: "The Devil", image: "images/15-TheDevil.png", meaning: "束縛、慾望、誘惑。" },
+        { name: "The Tower", image: "images/16-TheTower.png", meaning: "突變、震撼、重建。" },
+        { name: "The Star", image: "images/17-TheStar.png", meaning: "希望、靈感、療癒。" },
+        { name: "The Moon", image: "images/18-TheMoon.png", meaning: "幻象、潛意識、不確定性。" },
+        { name: "The Sun", image: "images/19-TheSun.png", meaning: "快樂、成功、光明。" },
+        { name: "Judgement", image: "images/20-Judgement.png", meaning: "覺醒、復活、審判。" },
+        { name: "The World", image: "images/21-TheWorld.png", meaning: "完成、整合、成就。" },
+        ...["Cups", "Pentacles", "Swords", "Wands"].flatMap(suit => {
+          const suitNames = { Cups: "聖杯", Pentacles: "錢幣", Swords: "寶劍", Wands: "權杖" };
+          const nameBase = suitNames[suit];
+          const cards = [];
+          for (let i = 1; i <= 14; i++) {
+            const numStr = i.toString().padStart(2, '0');
+            cards.push({
+              name: `${nameBase} ${i}`,
+              image: `images/${suit}${numStr}.png`,
+              meaning: `${nameBase} 第 ${i} 張牌，含義依實際塔羅解釋。`
+            });
+          }
+          return cards;
+        })
+      ];
+
+      const cardImage = document.getElementById('card-image');
+      const cardMeaning = document.getElementById('card-meaning');
+      const cardElement = document.getElementById('card');
+
+      function drawNewCard() {
+  const shuffled = [...cards];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  const selected = shuffled[0];
+  cardImage.src = selected.image;
+  cardImage.alt = `塔羅牌 ${selected.name}`;
+}
+
+      let flipped = false;
+      let lastFlipTime = null;
+
+      function toggleCard() {
+        flipped = !flipped;
+        cardElement.classList.toggle('flipped');
+        if (flipped) drawNewCard();
+      }
+
+      
+
+      cardElement.addEventListener('click', toggleCard);
+
+      window.addEventListener('deviceorientation', (event) => {
+        const beta = event.beta;
+        if (!flipped && beta > 150) {
+          lastFlipTime = Date.now();
+        }
+        if (!flipped && lastFlipTime && beta < 90 && (Date.now() - lastFlipTime < 2000)) {
+          toggleCard();
+        }
+      });
+
+      drawNewCard();
+    });
+  </script>
+</body>
+</html>
