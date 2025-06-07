@@ -232,6 +232,26 @@ document.getElementById('settings-toggle').addEventListener('click', () => {
   const panel = document.getElementById('settings-panel');
   panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
 });
+
+// 儲存與還原設定
+window.addEventListener('DOMContentLoaded', () => {
+  const allowReverseCheckbox = document.getElementById('allow-reverse');
+  const majorOnlyCheckbox = document.getElementById('major-only');
+
+  // 還原設定值
+  const allowReverse = localStorage.getItem('allowReverse');
+  const majorOnly = localStorage.getItem('majorOnly');
+  if (allowReverseCheckbox && allowReverse !== null) allowReverseCheckbox.checked = allowReverse === 'true';
+  if (majorOnlyCheckbox && majorOnly !== null) majorOnlyCheckbox.checked = majorOnly === 'true';
+
+  // 監聽變更並儲存
+  allowReverseCheckbox?.addEventListener('change', () => {
+    localStorage.setItem('allowReverse', allowReverseCheckbox.checked);
+  });
+  majorOnlyCheckbox?.addEventListener('change', () => {
+    localStorage.setItem('majorOnly', majorOnlyCheckbox.checked);
+  });
+});
 </script>
 
 </body>
