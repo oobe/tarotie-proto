@@ -170,26 +170,40 @@ document.getElementById('motion-permission-button').addEventListener('click', ()
   ];
 
   function loadCardAndFlip() {
-    const index = Math.floor(Math.random() * cards.length);
-    const selected = cards[index];
-    const newImage = new Image();
-    newImage.onload = () => {
-      cardImage.src = selected.image;
-      cardImage.alt = `塔羅牌 ${selected.name}`;
-      cardElement.classList.add('flipped');
-      flipped = true;
-    };
-    newImage.src = selected.image;
+  const allowReverse = document.getElementById('allow-reverse')?.checked;
+  const majorOnly = document.getElementById('major-only')?.checked;
+  let usableCards = cards;
+
+  if (majorOnly) {
+    usableCards = usableCards.slice(0, 22);
   }
 
-  function toggleCard() {
-    if (!flipped) {
-      loadCardAndFlip();
-    } else {
-      cardElement.classList.remove('flipped');
-      flipped = false;
-    }
+  const index = Math.floor(Math.random() * usableCards.length);
+  const selected = usableCards[index];
+  const isReversed = allowReverse ? Math.random() < 0.5 : false;
+
+  const newImage = new Image();
+  newImage.onload = () => {
+    cardImage.src = selected.image;
+    cardImage.alt = `塔羅牌 ${selected.name}${isReversed ? '（逆位）' : ''}`;
+    cardImage.style.transform = isReversed ? 'rotate(180deg)' : 'rotate(0deg)';
+    cardElement.classList.add('flipped');
+    flipped = true;
+  };
+  newImage.src = selected.image;
+}
+
+function toggleCard() {
+  const settingsToggle = document.getElementById('settings-toggle');
+  if (!flipped) {
+    loadCardAndFlip();
+    if (settingsToggle) settingsToggle.style.display = 'none';
+  } else {
+    cardElement.classList.remove('flipped');
+    flipped = false;
+    if (settingsToggle) settingsToggle.style.display = 'block';
   }
+}
 
   window.addEventListener('DOMContentLoaded', () => {
     cardElement.addEventListener('click', toggleCard);
@@ -208,5 +222,17 @@ document.getElementById('motion-permission-button').addEventListener('click', ()
     }
   });
 </script>
+<button id="settings-toggle" style="position: fixed; top: 20px; right: 20px; z-index: 1000; padding: 8px 12px; font-size: 16px;">⚙️</button>
+<div id="settings-panel" style="display: none; position: fixed; top: 60px; right: 20px; z-index: 1000; background: rgba(255,255,255,0.95); padding: 12px; border-radius: 10px; font-size: 14px; box-shadow: 0 2px 8px rgba(0,0,0,0.2);">
+  <label><input type="checkbox" id="allow-reverse"> 允許逆位牌</label><br>
+  <label><input type="checkbox" id="major-only"> 僅使用大牌</label>
+</div>
+<script>
+document.getElementById('settings-toggle').addEventListener('click', () => {
+  const panel = document.getElementById('settings-panel');
+  panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+});
+</script>
+
 </body>
 </html>
