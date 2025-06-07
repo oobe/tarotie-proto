@@ -170,19 +170,30 @@ document.getElementById('motion-permission-button').addEventListener('click', ()
   ];
 
   function loadCardAndFlip() {
-    const index = Math.floor(Math.random() * cards.length);
-    const selected = cards[index];
-    const newImage = new Image();
-    newImage.onload = () => {
-      cardImage.src = selected.image;
-      cardImage.alt = `塔羅牌 ${selected.name}`;
-      cardElement.classList.add('flipped');
-      flipped = true;
-    };
-    newImage.src = selected.image;
+  const allowReverse = document.getElementById('allow-reverse')?.checked;
+  const majorOnly = document.getElementById('major-only')?.checked;
+  let usableCards = cards;
+
+  if (majorOnly) {
+    usableCards = usableCards.slice(0, 22);
   }
 
-  function toggleCard() {
+  const index = Math.floor(Math.random() * usableCards.length);
+  const selected = usableCards[index];
+  const isReversed = allowReverse ? Math.random() < 0.5 : false;
+
+  const newImage = new Image();
+  newImage.onload = () => {
+    cardImage.src = selected.image;
+    cardImage.alt = `塔羅牌 ${selected.name}${isReversed ? '（逆位）' : ''}`;
+    cardImage.style.transform = isReversed ? 'rotate(180deg)' : 'rotate(0deg)';
+    cardElement.classList.add('flipped');
+    flipped = true;
+  };
+  newImage.src = selected.image;
+}
+
+function toggleCard() {
     if (!flipped) {
       loadCardAndFlip();
     } else {
@@ -208,5 +219,10 @@ document.getElementById('motion-permission-button').addEventListener('click', ()
     }
   });
 </script>
+<div style="position: fixed; bottom: 20px; left: 20px; z-index: 1000; background: rgba(255,255,255,0.9); padding: 10px; border-radius: 10px; font-size: 14px;">
+  <label><input type="checkbox" id="allow-reverse"> 允許逆位牌</label><br>
+  <label><input type="checkbox" id="major-only"> 僅使用大牌</label>
+</div>
+
 </body>
 </html>
