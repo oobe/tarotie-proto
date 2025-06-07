@@ -194,13 +194,16 @@ document.getElementById('motion-permission-button').addEventListener('click', ()
 }
 
 function toggleCard() {
-    if (!flipped) {
-      loadCardAndFlip();
-    } else {
-      cardElement.classList.remove('flipped');
-      flipped = false;
-    }
+  const settingsToggle = document.getElementById('settings-toggle');
+  if (!flipped) {
+    loadCardAndFlip();
+    if (settingsToggle) settingsToggle.style.display = 'none';
+  } else {
+    cardElement.classList.remove('flipped');
+    flipped = false;
+    if (settingsToggle) settingsToggle.style.display = 'block';
   }
+}
 
   window.addEventListener('DOMContentLoaded', () => {
     cardElement.addEventListener('click', toggleCard);
