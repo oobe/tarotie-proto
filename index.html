@@ -6,9 +6,9 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="Tarotie">
   <link rel="apple-touch-icon" href="images/icon.png">
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Tarotie</title>
-  <link rel="icon" type="image/x-icon" href="favicon.ico">
   <style>
     html, body {
       margin: 0;
@@ -83,7 +83,8 @@
   <div id="settings-drawer" style="position: fixed; bottom: -120px; left: 0; width: 100%; background: rgba(255,255,255,0.95); box-shadow: 0 -2px 10px rgba(0,0,0,0.1); padding: 16px; transition: bottom 0.3s ease; font-size: 14px; z-index: 1000;">
     <div style="text-align: center; margin-bottom: 8px; font-weight: bold;">Settings</div>
     <label><input type="checkbox" id="allow-reverse"> 允許逆位牌</label><br>
-    <label><input type="checkbox" id="major-only"> 僅使用大牌</label>
+    <label><input type="checkbox" id="major-only"> 僅使用大牌</label><br>
+    <button id="enable-motion" style="margin-top: 10px; display: none;">啟用手機翻牌</button>
   </div>
   <div id="drawer-tab" style="position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 50px; height: 24px; background: #ccc; border-top-left-radius: 10px; border-top-right-radius: 10px; text-align: center; line-height: 24px; font-size: 18px; cursor: pointer; z-index: 1001; opacity: 1; transition: opacity 0.3s ease;">☰</div>
 
@@ -95,48 +96,52 @@ window.addEventListener('DOMContentLoaded', () => {
   const drawerTab = document.getElementById('drawer-tab');
   const allowReverseCheckbox = document.getElementById('allow-reverse');
   const majorOnlyCheckbox = document.getElementById('major-only');
+  const enableMotionBtn = document.getElementById('enable-motion');
+  const isiOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+  if (isiOS) enableMotionBtn.style.display = 'block';
+
+  enableMotionBtn?.addEventListener('click', function () {
+    if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+      DeviceOrientationEvent.requestPermission()
+        .then(state => {
+          if (state === 'granted') {
+            console.log('[Motion] 使用者授權成功');
+            window.addEventListener('deviceorientation', handleOrientation);
+          } else {
+            console.warn('[Motion] 使用者未授權 deviceorientation');
+          }
+        })
+        .catch(err => console.error('[Motion] 錯誤:', err));
+    } else {
+      console.log('[Motion] 不需要授權或不支援 requestPermission');
+      window.addEventListener('deviceorientation', handleOrientation);
+    }
+  });
 
   let flipped = false;
   let lastFlipTime = null;
 
-  const majorArcana = [
-  { name: "The Fool", image: "images/00-TheFool.png" },
-  { name: "The Magician", image: "images/01-TheMagician.png" },
-  { name: "The High Priestess", image: "images/02-TheHighPriestess.png" },
-  { name: "The Empress", image: "images/03-TheEmpress.png" },
-  { name: "The Emperor", image: "images/04-TheEmperor.png" },
-  { name: "The Hierophant", image: "images/05-TheHierophant.png" },
-  { name: "The Lovers", image: "images/06-TheLovers.png" },
-  { name: "The Chariot", image: "images/07-TheChariot.png" },
-  { name: "Strength", image: "images/08-Strength.png" },
-  { name: "The Hermit", image: "images/09-TheHermit.png" },
-  { name: "Wheel of Fortune", image: "images/10-WheelOfFortune.png" },
-  { name: "Justice", image: "images/11-Justice.png" },
-  { name: "The Hanged Man", image: "images/12-TheHangedMan.png" },
-  { name: "Death", image: "images/13-Death.png" },
-  { name: "Temperance", image: "images/14-Temperance.png" },
-  { name: "The Devil", image: "images/15-TheDevil.png" },
-  { name: "The Tower", image: "images/16-TheTower.png" },
-  { name: "The Star", image: "images/17-TheStar.png" },
-  { name: "The Moon", image: "images/18-TheMoon.png" },
-  { name: "The Sun", image: "images/19-TheSun.png" },
-  { name: "Judgement", image: "images/20-Judgement.png" },
-  { name: "The World", image: "images/21-TheWorld.png" }
-];
-
-const minorArcana = ["Cups", "Pentacles", "Swords", "Wands"].flatMap(suit =>
-  Array.from({ length: 14 }, (_, i) => ({
-    name: `${suit} ${i + 1}`,
-    image: `images/${suit}${(i + 1).toString().padStart(2, '0')}.png`
-  }))
-);
-
-const allCards = [...majorArcana, ...minorArcana];
+  const majorArcana = [...Array(22)].map((_, i) => {
+    const num = i.toString().padStart(2, '0');
+    const name = [
+      "The Fool", "The Magician", "The High Priestess", "The Empress", "The Emperor",
+      "The Hierophant", "The Lovers", "The Chariot", "Strength", "The Hermit",
+      "Wheel of Fortune", "Justice", "The Hanged Man", "Death", "Temperance",
+      "The Devil", "The Tower", "The Star", "The Moon", "The Sun",
+      "Judgement", "The World"
+    ][i];
+    return { name, image: `images/${num}-${name.replace(/ /g, '')}.png` };
+  });
+  const minorArcana = ["Cups", "Pentacles", "Swords", "Wands"].flatMap(suit =>
+    Array.from({ length: 14 }, (_, i) => ({
+      name: `${suit} ${i + 1}`,
+      image: `images/${suit}${(i + 1).toString().padStart(2, '0')}.png`
+    }))
+  );
+  const allCards = [...majorArcana, ...minorArcana];
 
   function loadCardAndFlip() {
     let usableCards = majorOnlyCheckbox?.checked ? majorArcana : allCards;
-    if (majorOnlyCheckbox?.checked) usableCards = usableCards.slice(0, 22);
-
     const index = Math.floor(Math.random() * usableCards.length);
     const selected = usableCards[index];
     const isReversed = allowReverseCheckbox?.checked && Math.random() < 0.5;
@@ -146,12 +151,10 @@ const allCards = [...majorArcana, ...minorArcana];
       cardImage.src = selected.image;
       cardImage.alt = `塔羅牌 ${selected.name}${isReversed ? '（逆位）' : ''}`;
       cardImage.style.transform = isReversed ? 'rotate(180deg)' : 'rotate(0deg)';
-    
       cardElement.classList.add('flipped');
-    const drawerTab = document.getElementById('drawer-tab');
-    drawerTab.style.bottom = '-40px';
-    drawerTab.style.opacity = '0';
       flipped = true;
+      drawerTab.style.bottom = '-40px';
+      drawerTab.style.opacity = '0';
     };
     newImage.src = selected.image;
   }
@@ -162,20 +165,23 @@ const allCards = [...majorArcana, ...minorArcana];
       settingsDrawer.style.bottom = '-120px';
     } else {
       cardElement.classList.remove('flipped');
-    const drawerTab = document.getElementById('drawer-tab');
-    drawerTab.style.bottom = '0px';
-    drawerTab.style.opacity = '1';
       flipped = false;
+      drawerTab.style.bottom = '0px';
+      drawerTab.style.opacity = '1';
     }
   }
 
   function handleOrientation(event) {
+    console.log('[Motion] deviceorientation 觸發', event.beta);
     const beta = event.beta;
     if (beta === null) return;
+
     if (beta > 150) {
       if (flipped) {
         cardElement.classList.remove('flipped');
         flipped = false;
+        drawerTab.style.bottom = '0px';
+        drawerTab.style.opacity = '1';
       }
       lastFlipTime = Date.now();
     }
@@ -185,7 +191,6 @@ const allCards = [...majorArcana, ...minorArcana];
     }
   }
 
-  // Drawer toggle
   drawerTab.addEventListener('click', () => {
     const isOpen = settingsDrawer.style.bottom === '0px';
     settingsDrawer.style.bottom = isOpen ? '-120px' : '0px';
@@ -193,12 +198,11 @@ const allCards = [...majorArcana, ...minorArcana];
 
   cardElement.addEventListener('click', toggleCard);
 
-  // 儲存與還原設定
+  // localStorage
   const allowReverse = localStorage.getItem('allowReverse');
   const majorOnly = localStorage.getItem('majorOnly');
   if (allowReverse !== null) allowReverseCheckbox.checked = allowReverse === 'true';
   if (majorOnly !== null) majorOnlyCheckbox.checked = majorOnly === 'true';
-
   allowReverseCheckbox?.addEventListener('change', () => {
     localStorage.setItem('allowReverse', allowReverseCheckbox.checked);
   });
@@ -206,21 +210,6 @@ const allCards = [...majorArcana, ...minorArcana];
     localStorage.setItem('majorOnly', majorOnlyCheckbox.checked);
   });
 
-  // 啟用陀螺儀
-  if (typeof DeviceOrientationEvent !== 'undefined') {
-    if (typeof DeviceOrientationEvent.requestPermission === 'function') {
-      DeviceOrientationEvent.requestPermission()
-        .then(state => {
-          if (state === 'granted') {
-            window.addEventListener('deviceorientation', handleOrientation);
-          }
-        }).catch(console.warn);
-    } else {
-      window.addEventListener('deviceorientation', handleOrientation);
-    }
-  }
-
-  // 快取圖片
   allCards.forEach(card => {
     const img = new Image();
     img.src = card.image;
